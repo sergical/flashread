@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlashRead</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <!-- Hero section with logo -->
+    <header class="header">
+      <div class="logo">
+        <img src="../../icons/icon128.png" alt="FlashRead" class="logo-icon">
+        <div class="logo-text">
+          <span class="logo-name">FlashRead</span>
+          <span class="logo-tagline">Speed Reader</span>
+        </div>
+      </div>
+    </header>
+    
+    <main class="main">
+      <!-- Primary actions -->
+      <div class="actions">
+        <button id="read-page" class="action-card action-primary">
+          <div class="action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+            </svg>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Read This Page</span>
+            <span class="action-desc">Extract & speed read the article</span>
+          </div>
+          <div class="action-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </div>
+        </button>
+        
+        <button id="demo" class="action-card action-secondary">
+          <div class="action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+            </svg>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Try Demo</span>
+            <span class="action-desc">See how it works</span>
+          </div>
+          <div class="action-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </div>
+        </button>
+      </div>
+      
+      <!-- Custom text input -->
+      <div class="paste-section">
+        <div class="paste-header">
+          <span class="paste-label">Custom Text</span>
+          <span class="paste-hint" id="char-count">0 characters</span>
+        </div>
+        <div class="paste-wrapper">
+          <textarea id="custom-text" placeholder="Paste any text here..."></textarea>
+          <button id="read-custom" class="paste-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Speed control -->
+      <div class="speed-section">
+        <div class="speed-header">
+          <span class="speed-label">Reading Speed</span>
+          <div class="speed-value">
+            <span id="wpm-value" class="speed-number">300</span>
+            <span class="speed-unit">WPM</span>
+          </div>
+        </div>
+        <div class="speed-slider-wrapper">
+          <input type="range" id="wpm-slider" class="speed-slider" min="100" max="1200" value="300" step="50">
+          <div class="speed-marks">
+            <span>100</span>
+            <span>400</span>
+            <span>700</span>
+            <span>1000</span>
+          </div>
+        </div>
+        <div class="speed-presets">
+          <button class="preset" data-wpm="200">Relaxed</button>
+          <button class="preset" data-wpm="350">Normal</button>
+          <button class="preset active" data-wpm="500">Fast</button>
+          <button class="preset" data-wpm="800">Sprint</button>
+        </div>
+      </div>
+    </main>
+    
+    <footer class="footer">
+      <a href="#" id="open-options" class="footer-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Settings
+      </a>
+      <span class="footer-shortcut">
+        <kbd>⌥</kbd><kbd>⇧</kbd><kbd>R</kbd>
+      </span>
+    </footer>
+  </div>
+  
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>

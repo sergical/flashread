@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "FlashRead - RSVP Speed Reader",
+  "version": "1.0.0",
+  "description": "Speed read at 500-900+ WPM with RSVP. One word at a time, centered on the optimal recognition point.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "FlashRead - Speed Reader"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.ts"],
+      "css": []
+    }
+  ],
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "options_page": "src/options/options.html",
+  "commands": {
+    "start-reading": {
+      "suggested_key": {
+        "default": "Alt+Shift+R",
+        "mac": "Alt+Shift+R"
+      },
+      "description": "Start speed reading selected text or article"
+    }
+  }
+}
