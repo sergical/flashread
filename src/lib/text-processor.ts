@@ -51,10 +51,12 @@ function getMidSentencePause(word: string): number {
  */
 function normalizeText(text: string): string {
   return text
-    // Normalize whitespace
-    .replace(/\s+/g, ' ')
-    // Remove multiple newlines but preserve single ones for paragraph detection
+    // Normalize multiple newlines to double newline (paragraph break)
     .replace(/\n\s*\n/g, '\n\n')
+    // Convert single newlines to double newlines (treat line breaks as pauses)
+    .replace(/(?<!\n)\n(?!\n)/g, '\n\n')
+    // Normalize spaces (but not newlines)
+    .replace(/[^\S\n]+/g, ' ')
     // Trim
     .trim();
 }
