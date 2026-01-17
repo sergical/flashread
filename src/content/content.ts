@@ -86,11 +86,26 @@ function extractArticle(): string | null {
     const reader = new Readability(documentClone);
     const article = reader.parse();
     
-    if (article && article.textContent) {
-      // Clean up the text
-      return article.textContent
-        .replace(/\s+/g, ' ')
-        .replace(/\n\s*\n/g, '\n\n')
+    if (article && article.content) {
+      // Convert HTML to text while preserving line breaks
+      const temp = document.createElement('div');
+      temp.innerHTML = article.content;
+      
+      // Replace <br> tags with newlines
+      temp.querySelectorAll('br').forEach(br => {
+        br.replaceWith('\n');
+      });
+      
+      // Replace block elements with double newlines
+      temp.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li, tr').forEach(el => {
+        el.prepend('\n\n');
+      });
+      
+      // Get text content and clean up
+      return (temp.textContent || '')
+        .replace(/\n{3,}/g, '\n\n')  // Max 2 newlines
+        .replace(/[ \t]+/g, ' ')      // Collapse spaces (but not newlines)
+        .replace(/ ?\n ?/g, '\n')     // Clean up spaces around newlines
         .trim();
     }
     

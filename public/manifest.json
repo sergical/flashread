@@ -40,8 +40,8 @@
   "commands": {
     "start-reading": {
       "suggested_key": {
-        "default": "Alt+Shift+R",
-        "mac": "Alt+Shift+R"
+        "default": "Ctrl+Shift+R",
+        "mac": "MacCtrl+Shift+R"
       },
       "description": "Start speed reading selected text or article"
     }

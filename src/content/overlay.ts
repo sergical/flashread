@@ -202,34 +202,53 @@ export class FlashReadOverlay {
         cursor: pointer;
       }
       
-      /* Subtle focus marker - small notch at center */
-      .focus-marker {
+      /* Guide lines - horizontal with center notch like logo */
+      .guide-lines {
         position: absolute;
         top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
         pointer-events: none;
         z-index: 1;
       }
       
-      .focus-marker::before,
-      .focus-marker::after {
-        content: '';
+      .guide-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: ${colors.muted};
+        opacity: 0.15;
+      }
+      
+      .guide-line-top {
+        top: -60px;
+      }
+      
+      .guide-line-bottom {
+        bottom: -60px;
+      }
+      
+      /* Center notch marks */
+      .guide-notch {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        width: 2px;
-        height: 12px;
+        width: 1px;
+        height: 16px;
         background: ${colors.muted};
-        opacity: 0.5;
+        opacity: 0.25;
       }
       
-      .focus-marker::before {
-        bottom: 50px;
+      .guide-notch-top {
+        top: -60px;
+        transform: translateX(-50%) translateY(-100%);
       }
       
-      .focus-marker::after {
-        top: 50px;
+      .guide-notch-bottom {
+        bottom: -60px;
+        transform: translateX(-50%) translateY(100%);
       }
       
       /* Progress bar */
@@ -540,11 +559,28 @@ export class FlashReadOverlay {
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
     
-    // Focus marker (subtle center indicator)
+    // Guide lines (horizontal lines with center notches like logo)
     if (this.settings?.showGuideLines) {
-      const focusMarker = document.createElement('div');
-      focusMarker.className = 'focus-marker';
-      this.overlay.appendChild(focusMarker);
+      const guideLines = document.createElement('div');
+      guideLines.className = 'guide-lines';
+      
+      const lineTop = document.createElement('div');
+      lineTop.className = 'guide-line guide-line-top';
+      
+      const lineBottom = document.createElement('div');
+      lineBottom.className = 'guide-line guide-line-bottom';
+      
+      const notchTop = document.createElement('div');
+      notchTop.className = 'guide-notch guide-notch-top';
+      
+      const notchBottom = document.createElement('div');
+      notchBottom.className = 'guide-notch guide-notch-bottom';
+      
+      guideLines.appendChild(lineTop);
+      guideLines.appendChild(lineBottom);
+      guideLines.appendChild(notchTop);
+      guideLines.appendChild(notchBottom);
+      this.overlay.appendChild(guideLines);
     }
     
     // Progress bar
