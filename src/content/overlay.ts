@@ -19,6 +19,7 @@ export class FlashReadOverlay {
   private isVisible = false;
   private controlsTimeout: number | null = null;
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+  private visibilityHandler: (() => void) | null = null;
   private charWidth: number = 0; // Measured character width for offset calculation
   private sessionStartTime: number = 0;
   private totalWords: number = 0;
@@ -58,6 +59,7 @@ export class FlashReadOverlay {
     this.setupEngineEvents();
     this.setupKeyboardControls();
     this.setupMouseControls();
+    this.setupVisibilityHandler();
     
     // Load text
     const textToRead = text || DEMO_TEXT;
@@ -92,6 +94,12 @@ export class FlashReadOverlay {
     if (this.keydownHandler) {
       document.removeEventListener('keydown', this.keydownHandler);
       this.keydownHandler = null;
+    }
+    
+    // Remove visibility handler
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
     }
     
     // Remove DOM
@@ -859,6 +867,18 @@ export class FlashReadOverlay {
       }
       this.engine?.toggle();
     });
+  }
+  
+  /**
+   * Setup visibility change handler to pause when window loses focus
+   */
+  private setupVisibilityHandler(): void {
+    this.visibilityHandler = () => {
+      if (document.hidden && this.engine?.getState().isPlaying) {
+        this.engine.pause();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
   
   /**
