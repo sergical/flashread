@@ -1005,6 +1005,85 @@ export class FlashReadOverlay {
     styleSheet.textContent = `
       @keyframes flashread-fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes flashread-slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes flashread-tooltipIn { 
+        from { opacity: 0; transform: translateX(-50%) translateY(4px) scale(0.96); } 
+        to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } 
+      }
+      
+      .flashread-tooltip-trigger {
+        position: relative;
+        cursor: pointer;
+      }
+      .flashread-tooltip-trigger .flashread-tooltip {
+        position: absolute;
+        bottom: calc(100% + 12px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, rgba(30, 30, 35, 0.98) 0%, rgba(20, 20, 25, 0.98) 100%);
+        color: #f5f5f5;
+        padding: 16px 20px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.6;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        z-index: 100;
+        min-width: 280px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 
+          0 8px 32px rgba(0, 0, 0, 0.4),
+          0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .flashread-tooltip-trigger .flashread-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 8px solid transparent;
+        border-top-color: rgba(25, 25, 30, 0.98);
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+      }
+      .flashread-tooltip-trigger:hover .flashread-tooltip {
+        opacity: 1;
+        visibility: visible;
+        animation: flashread-tooltipIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .flashread-tooltip-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+      }
+      .flashread-tooltip-row:not(:last-child) {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .flashread-tooltip-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
+      }
+      .flashread-tooltip-value {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-weight: 500;
+        color: #fff;
+        font-size: 13px;
+      }
+      .flashread-tooltip-header {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .flashread-tooltip-highlight {
+        color: #fbbf24;
+      }
     `;
     document.head.appendChild(styleSheet);
     
@@ -1033,6 +1112,28 @@ export class FlashReadOverlay {
       ? Math.round(((estimatedNormalTime - stats.timeSpentMs) / estimatedNormalTime) * 100)
       : 0;
     
+    // Format times for tooltip
+    const normalTimeFormatted = formatDuration(estimatedNormalTime);
+    const actualTimeFormatted = formatDuration(stats.timeSpentMs);
+    const timeSavedFormatted = timeSaved > 0 ? formatDuration(timeSaved) : '-';
+    
+    // Structured tooltip HTML
+    const tooltipHTML = `
+      <div class="flashread-tooltip-header">Time Calculation</div>
+      <div class="flashread-tooltip-row">
+        <span class="flashread-tooltip-label">Average reader (250 WPM)</span>
+        <span class="flashread-tooltip-value">${normalTimeFormatted}</span>
+      </div>
+      <div class="flashread-tooltip-row">
+        <span class="flashread-tooltip-label">Your time</span>
+        <span class="flashread-tooltip-value">${actualTimeFormatted}</span>
+      </div>
+      <div class="flashread-tooltip-row">
+        <span class="flashread-tooltip-label">Time saved</span>
+        <span class="flashread-tooltip-value flashread-tooltip-highlight">${timeSavedFormatted}</span>
+      </div>
+    `;
+    
     const content = document.createElement('div');
     content.style.cssText = `
       background: ${isDark ? '#0a0a0a' : '#ffffff'};
@@ -1054,20 +1155,21 @@ export class FlashReadOverlay {
       
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px;">
         <div style="background: ${isDark ? '#141414' : '#f5f5f5'}; padding: 20px; border-radius: 16px;">
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: #10b981;">${stats.wordsRead.toLocaleString()}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: #10b981; white-space: nowrap;">${stats.wordsRead.toLocaleString()}</div>
           <div style="font-size: 13px; color: ${isDark ? '#555' : '#888'}; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Words</div>
         </div>
         <div style="background: ${isDark ? '#141414' : '#f5f5f5'}; padding: 20px; border-radius: 16px;">
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: #3b82f6;">${stats.averageWpm}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: #3b82f6; white-space: nowrap;">${stats.averageWpm}</div>
           <div style="font-size: 13px; color: ${isDark ? '#555' : '#888'}; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Avg WPM</div>
         </div>
         <div style="background: ${isDark ? '#141414' : '#f5f5f5'}; padding: 20px; border-radius: 16px;">
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: #f472b6;">${formatDuration(stats.timeSpentMs)}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: #f472b6; white-space: nowrap;">${formatDuration(stats.timeSpentMs)}</div>
           <div style="font-size: 13px; color: ${isDark ? '#555' : '#888'}; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Duration</div>
         </div>
-        <div style="background: ${isDark ? '#141414' : '#f5f5f5'}; padding: 20px; border-radius: 16px;">
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: #fbbf24;">${timeSaved > 0 ? formatDuration(timeSaved) : '-'}</div>
-          <div style="font-size: 13px; color: ${isDark ? '#555' : '#888'}; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Time Saved</div>
+        <div class="flashread-tooltip-trigger" style="background: ${isDark ? '#141414' : '#f5f5f5'}; padding: 20px; border-radius: 16px;">
+          <div class="flashread-tooltip">${tooltipHTML}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: #fbbf24; white-space: nowrap;">${timeSavedFormatted}</div>
+          <div style="font-size: 13px; color: ${isDark ? '#555' : '#888'}; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Time Saved <span style="opacity: 0.6;">ⓘ</span></div>
         </div>
       </div>
       
