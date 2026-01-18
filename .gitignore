@@ -24,3 +24,8 @@ npm-debug.log*
 # Environment
 .env
 .env.local
+
+PRD-*.md
+packages/premium/
+
+tmp/
