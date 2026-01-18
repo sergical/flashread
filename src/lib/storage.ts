@@ -1,4 +1,4 @@
-import type { FlashReadSettings } from '../types';
+import type { FlashReadSettings, ReadingSession } from '../types';
 import { DEFAULT_SETTINGS } from '../utils/constants';
 
 /**
@@ -6,6 +6,8 @@ import { DEFAULT_SETTINGS } from '../utils/constants';
  */
 
 const SETTINGS_KEY = 'flashread_settings';
+const SESSIONS_KEY = 'flashread_sessions';
+const MAX_SESSIONS = 50; // Keep last 50 sessions
 
 /**
  * Load settings from Chrome storage
@@ -69,5 +71,78 @@ export function onSettingsChange(
   // Return unsubscribe function
   return () => {
     chrome.storage.onChanged.removeListener(listener);
+  };
+}
+
+/**
+ * Save a reading session to history
+ */
+export async function saveSession(session: ReadingSession): Promise<void> {
+  const sessions = await loadSessions();
+  sessions.unshift(session); // Add to beginning
+  
+  // Keep only the last MAX_SESSIONS
+  const trimmed = sessions.slice(0, MAX_SESSIONS);
+  
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [SESSIONS_KEY]: trimmed }, () => {
+      resolve();
+    });
+  });
+}
+
+/**
+ * Load all reading sessions from history
+ */
+export async function loadSessions(): Promise<ReadingSession[]> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([SESSIONS_KEY], (result) => {
+      resolve(result[SESSIONS_KEY] || []);
+    });
+  });
+}
+
+/**
+ * Clear all reading history
+ */
+export async function clearSessions(): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.remove([SESSIONS_KEY], () => {
+      resolve();
+    });
+  });
+}
+
+/**
+ * Get aggregate stats from all sessions
+ */
+export async function getAggregateStats(): Promise<{
+  totalSessions: number;
+  totalWordsRead: number;
+  totalTimeMs: number;
+  averageWpm: number;
+}> {
+  const sessions = await loadSessions();
+  
+  if (sessions.length === 0) {
+    return {
+      totalSessions: 0,
+      totalWordsRead: 0,
+      totalTimeMs: 0,
+      averageWpm: 0,
+    };
+  }
+  
+  const totalWordsRead = sessions.reduce((sum, s) => sum + s.wordsRead, 0);
+  const totalTimeMs = sessions.reduce((sum, s) => sum + (s.endTime ? s.endTime - s.startTime : 0), 0);
+  const averageWpm = totalTimeMs > 0 
+    ? Math.round((totalWordsRead / totalTimeMs) * 60000)
+    : 0;
+  
+  return {
+    totalSessions: sessions.length,
+    totalWordsRead,
+    totalTimeMs,
+    averageWpm,
   };
 }

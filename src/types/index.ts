@@ -3,7 +3,7 @@
 export interface FlashReadSettings {
   wpm: number;
   fontSize: number;
-  fontFamily: string;
+  fontFamily: 'serif' | 'sans' | 'mono';
   theme: 'dark' | 'light';
   showGuideLines: boolean;
   showProgressBar: boolean;

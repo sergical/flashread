@@ -51,13 +51,7 @@ function getMidSentencePause(word: string): number {
  */
 function normalizeText(text: string): string {
   return text
-    // Normalize multiple newlines to double newline (paragraph break)
-    .replace(/\n\s*\n/g, '\n\n')
-    // Convert single newlines to double newlines (treat line breaks as pauses)
-    .replace(/(?<!\n)\n(?!\n)/g, '\n\n')
-    // Normalize spaces (but not newlines)
-    .replace(/[^\S\n]+/g, ' ')
-    // Trim
+    .replace(/\s+/g, ' ')  // Normalize all whitespace to single space
     .trim();
 }
 
@@ -68,28 +62,10 @@ export function processText(text: string, usePunctuationPause = true): Word[] {
   const normalized = normalizeText(text);
   const words: Word[] = [];
   
-  // Split by whitespace while tracking paragraph breaks
-  const parts = normalized.split(/(\s+)/);
+  // Simple split by space
+  const parts = normalized.split(' ');
   
-  for (const part of parts) {
-    // Check for paragraph break (double newline was preserved)
-    if (part.includes('\n\n')) {
-      // Add pause for paragraph break
-      if (words.length > 0) {
-        words[words.length - 1].pauseMultiplier = Math.max(
-          words[words.length - 1].pauseMultiplier,
-          PAUSE_MULTIPLIERS['\n'] || 3.0
-        );
-      }
-      continue;
-    }
-    
-    // Skip other whitespace
-    if (/^\s*$/.test(part)) {
-      continue;
-    }
-    
-    const word = part.trim();
+  for (const word of parts) {
     if (word.length === 0) continue;
     
     // Calculate pause multiplier based on punctuation

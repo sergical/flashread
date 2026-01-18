@@ -1,8 +1,8 @@
 import type { Word, FlashReadSettings, ReadingStats } from '../types';
 import { RSVPEngine, type RSVPEvent } from '../lib/rsvp-engine';
 import { splitWordAtORP } from '../lib/orp';
-import { loadSettings } from '../lib/storage';
-import { MIN_WPM, MAX_WPM, DEMO_TEXT } from '../utils/constants';
+import { loadSettings, saveSession } from '../lib/storage';
+import { MIN_WPM, MAX_WPM, DEMO_TEXT, FONT_FAMILIES } from '../utils/constants';
 import { formatDuration } from '../lib/text-processor';
 
 /**
@@ -20,6 +20,8 @@ export class FlashReadOverlay {
   private controlsTimeout: number | null = null;
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private charWidth: number = 0; // Measured character width for offset calculation
+  private sessionStartTime: number = 0;
+  private totalWords: number = 0;
   
   // DOM elements
   private overlay: HTMLElement | null = null;
@@ -60,6 +62,10 @@ export class FlashReadOverlay {
     // Load text
     const textToRead = text || DEMO_TEXT;
     this.engine.loadText(textToRead);
+    
+    // Track session
+    this.sessionStartTime = Date.now();
+    this.totalWords = this.engine.getState().words.length;
     
     this.isVisible = true;
     
@@ -113,7 +119,9 @@ export class FlashReadOverlay {
     this.isVisible = false;
     
     // Show stats if reading was completed or significant
-    if (stats && stats.wordsRead > 10) {
+    console.log('[FlashRead] hide() called, stats:', stats);
+    if (stats && stats.wordsRead > 0) {
+      console.log('[FlashRead] Showing stats modal');
       this.showStatsModal(stats);
     }
   }
@@ -132,6 +140,8 @@ export class FlashReadOverlay {
     const theme = this.settings?.theme || 'dark';
     const isDark = theme === 'dark';
     const fontSize = this.settings?.fontSize || 72;
+    const fontFamilyKey = this.settings?.fontFamily || 'serif';
+    const fontFamily = FONT_FAMILIES[fontFamilyKey]?.family || FONT_FAMILIES.serif.family;
     
     // Color palette
     const colors = isDark ? {
@@ -170,10 +180,10 @@ export class FlashReadOverlay {
     // Attach shadow DOM
     this.shadowRoot = this.shadowHost.attachShadow({ mode: 'closed' });
     
-    // Inject Google Font
+    // Inject Google Fonts - all three reading font options
     const fontLink = document.createElement('style');
     fontLink.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&family=Literata:wght@400;700&display=swap');
     `;
     
     // Create styles
@@ -204,51 +214,49 @@ export class FlashReadOverlay {
       
       /* Guide lines - horizontal with center notch like logo */
       .guide-lines {
-        position: absolute;
-        top: 50%;
+        position: fixed;
+        top: 0;
         left: 0;
         right: 0;
-        transform: translateY(-50%);
+        bottom: 0;
         pointer-events: none;
         z-index: 1;
       }
       
       .guide-line {
         position: absolute;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: ${colors.muted};
-        opacity: 0.15;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, #333333 20%, #333333 80%, transparent 100%);
       }
       
       .guide-line-top {
-        top: -60px;
+        top: calc(50% - 70px);
       }
       
       .guide-line-bottom {
-        bottom: -60px;
+        top: calc(50% + 70px);
       }
       
-      /* Center notch marks */
+      /* Center notch marks - pointing inward toward the word */
       .guide-notch {
         position: absolute;
         left: 50%;
+        width: 2px;
+        background: #333333;
         transform: translateX(-50%);
-        width: 1px;
-        height: 16px;
-        background: ${colors.muted};
-        opacity: 0.25;
       }
       
       .guide-notch-top {
-        top: -60px;
-        transform: translateX(-50%) translateY(-100%);
+        top: calc(50% - 70px);
+        height: 20px;
       }
       
       .guide-notch-bottom {
-        bottom: -60px;
-        transform: translateX(-50%) translateY(100%);
+        top: calc(50% + 52px);
+        height: 20px;
       }
       
       /* Progress bar */
@@ -298,10 +306,10 @@ export class FlashReadOverlay {
       .word-container {
         display: flex;
         align-items: center;
-        font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+        font-family: ${fontFamily};
         font-size: ${fontSize}px;
-        font-weight: 500;
-        letter-spacing: -0.01em;
+        font-weight: 400;
+        letter-spacing: 0.01em;
         line-height: 1;
         white-space: nowrap;
       }
@@ -312,7 +320,6 @@ export class FlashReadOverlay {
       
       .word-pivot {
         color: ${colors.pivot};
-        font-weight: 700;
       }
       
       .word-after {
@@ -617,28 +624,11 @@ export class FlashReadOverlay {
     wordArea.appendChild(this.wordContainer);
     this.overlay.appendChild(wordArea);
     
-    // Assemble shadow DOM first so we can measure
+    // Assemble shadow DOM
     this.shadowRoot!.appendChild(fontLink);
     this.shadowRoot!.appendChild(styles);
     this.shadowRoot!.appendChild(this.overlay);
     document.body.appendChild(this.shadowHost!);
-    
-    // Measure character width for monospace font (used for jitter-free offset calculation)
-    // We do this after appending to DOM so styles are applied
-    const measureEl = document.createElement('span');
-    measureEl.style.cssText = `
-      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-      font-size: ${fontSize}px;
-      font-weight: 500;
-      letter-spacing: -0.01em;
-      visibility: hidden;
-      position: absolute;
-      white-space: pre;
-    `;
-    measureEl.textContent = 'M'; // Use 'M' as reference character
-    this.overlay.appendChild(measureEl);
-    this.charWidth = measureEl.getBoundingClientRect().width;
-    measureEl.remove();
     
     // Status bar
     const statusBar = document.createElement('div');
@@ -906,28 +896,29 @@ export class FlashReadOverlay {
   }
   
   /**
-   * Update the displayed word with FIXED PIVOT CENTERING (jitter-free)
+   * Update the displayed word with FIXED PIVOT CENTERING
    * 
    * The word is displayed as [before][pivot][after] in a flex row.
-   * We calculate the offset based on character count × measured char width.
-   * This is synchronous - no requestAnimationFrame needed - eliminating jitter.
+   * For proportional fonts, we measure actual text widths after rendering.
    */
   private updateWord(word: Word): void {
     if (!this.wordBefore || !this.wordPivot || !this.wordAfter || !this.wordContainer) return;
     
     const { before, pivot, after } = splitWordAtORP(word.text);
     
-    // Calculate offset using character count (synchronous, no DOM measurement)
-    // Offset = -(beforeChars * charWidth + pivotChars * charWidth / 2)
-    const offset = -(before.length * this.charWidth + (pivot.length * this.charWidth) / 2);
-    
-    // Apply transform BEFORE updating text to prevent any flash of wrong position
-    this.wordContainer.style.transform = `translateX(${offset}px)`;
-    
-    // Update text content
+    // Update text content first
     this.wordBefore.textContent = before;
     this.wordPivot.textContent = pivot;
     this.wordAfter.textContent = after;
+    
+    // Measure actual widths and calculate offset
+    // Offset = -(beforeWidth + pivotWidth/2) to center the pivot
+    const beforeWidth = this.wordBefore.getBoundingClientRect().width;
+    const pivotWidth = this.wordPivot.getBoundingClientRect().width;
+    const offset = -(beforeWidth + pivotWidth / 2);
+    
+    // Apply transform
+    this.wordContainer.style.transform = `translateX(${offset}px)`;
   }
   
   /**
@@ -984,9 +975,41 @@ export class FlashReadOverlay {
    * Show reading statistics modal
    */
   private showStatsModal(stats: ReadingStats): void {
-    const isDark = this.settings?.theme === 'dark';
+    console.log('[FlashRead] showStatsModal called with:', stats);
+    
+    // Prevent duplicate modals
+    if (document.getElementById('flashread-stats-modal')) {
+      console.log('[FlashRead] Modal already exists, skipping');
+      return;
+    }
+    
+    try {
+      const isDark = this.settings?.theme === 'dark';
+    
+    // Save session to history
+    const session = {
+      id: `${this.sessionStartTime}-${Math.random().toString(36).slice(2, 9)}`,
+      startTime: this.sessionStartTime,
+      endTime: Date.now(),
+      wordsRead: stats.wordsRead,
+      totalWords: this.totalWords,
+      averageWpm: stats.averageWpm,
+      startWpm: stats.startWpm,
+      endWpm: stats.endWpm,
+    };
+    saveSession(session);
+    
+    // Create and inject keyframes first
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'flashread-modal-styles';
+    styleSheet.textContent = `
+      @keyframes flashread-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes flashread-slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    `;
+    document.head.appendChild(styleSheet);
     
     const modal = document.createElement('div');
+    modal.id = 'flashread-stats-modal';
     modal.style.cssText = `
       position: fixed;
       top: 0;
@@ -1001,7 +1024,7 @@ export class FlashReadOverlay {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      animation: fadeIn 0.3s ease;
+      animation: flashread-fadeIn 0.3s ease;
     `;
     
     const estimatedNormalTime = (stats.wordsRead / 250) * 60 * 1000;
@@ -1019,14 +1042,10 @@ export class FlashReadOverlay {
       color: ${isDark ? '#ffffff' : '#0a0a0a'};
       text-align: center;
       max-width: 420px;
-      animation: slideUp 0.4s ease;
+      animation: flashread-slideUp 0.4s ease;
     `;
     
     content.innerHTML = `
-      <style>
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-      </style>
       <div style="font-size: 48px; margin-bottom: 8px;">🎉</div>
       <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700;">Session Complete</h2>
       <p style="margin: 0 0 32px; font-size: 15px; color: ${isDark ? '#666' : '#888'};">
@@ -1069,7 +1088,10 @@ export class FlashReadOverlay {
     document.body.appendChild(modal);
     
     // Close handlers
-    const close = () => modal.remove();
+    const close = () => {
+      modal.remove();
+      styleSheet.remove();
+    };
     const closeBtn = content.querySelector('#flashread-stats-close') as HTMLButtonElement;
     closeBtn?.addEventListener('click', close);
     closeBtn?.addEventListener('mouseenter', () => {
@@ -1085,13 +1107,22 @@ export class FlashReadOverlay {
       if (e.target === modal) close();
     });
     
-    const keyHandler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Enter') {
-        close();
-        document.removeEventListener('keydown', keyHandler);
-      }
-    };
-    document.addEventListener('keydown', keyHandler);
+    // Delay adding keyboard handler to prevent the Escape that closed the overlay
+    // from immediately closing the modal too
+    setTimeout(() => {
+      const keyHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          close();
+          document.removeEventListener('keydown', keyHandler);
+        }
+      };
+      document.addEventListener('keydown', keyHandler);
+    }, 100);
+    
+    console.log('[FlashRead] Modal appended to body');
+    } catch (err) {
+      console.error('[FlashRead] Error in showStatsModal:', err);
+    }
   }
 }
 

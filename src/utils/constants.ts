@@ -4,7 +4,7 @@ import type { FlashReadSettings } from '../types';
 export const DEFAULT_SETTINGS: FlashReadSettings = {
   wpm: 300,
   fontSize: 72,
-  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fontFamily: 'serif',
   theme: 'dark',
   showGuideLines: true,
   showProgressBar: true,
@@ -14,6 +14,27 @@ export const DEFAULT_SETTINGS: FlashReadSettings = {
   autoRampIncrement: 50, // +50 WPM
   punctuationPause: true,
 };
+
+// Font families for RSVP reading
+export const FONT_FAMILIES = {
+  serif: {
+    label: 'Serif',
+    family: '"Literata", Georgia, "Times New Roman", serif',
+    google: 'Literata:wght@400;700',
+  },
+  sans: {
+    label: 'Sans',
+    family: '"Atkinson Hyperlegible", -apple-system, BlinkMacSystemFont, sans-serif',
+    google: 'Atkinson+Hyperlegible:wght@400;700',
+  },
+  mono: {
+    label: 'Mono',
+    family: '"JetBrains Mono", "SF Mono", Consolas, monospace',
+    google: 'JetBrains+Mono:wght@400;700',
+  },
+} as const;
+
+export type FontFamilyKey = keyof typeof FONT_FAMILIES;
 
 // WPM constraints
 export const MIN_WPM = 100;

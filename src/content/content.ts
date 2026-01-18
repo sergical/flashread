@@ -87,26 +87,28 @@ function extractArticle(): string | null {
     const article = reader.parse();
     
     if (article && article.content) {
-      // Convert HTML to text while preserving line breaks
+      // Create temp element to convert HTML to text
       const temp = document.createElement('div');
-      temp.innerHTML = article.content;
+      // Replace <br> tags with space (textContent ignores <br>)
+      // Also add space after block-level closing tags to prevent word concatenation
+      const html = article.content
+        .replace(/<br\s*\/?>/gi, ' ')
+        .replace(/<\/(p|div|h[1-6]|li|tr|td|th|blockquote)>/gi, '</$1> ');
+      temp.innerHTML = html;
       
-      // Replace <br> tags with newlines
-      temp.querySelectorAll('br').forEach(br => {
-        br.replaceWith('\n');
-      });
-      
-      // Replace block elements with double newlines
-      temp.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li, tr').forEach(el => {
-        el.prepend('\n\n');
-      });
-      
-      // Get text content and clean up
-      return (temp.textContent || '')
-        .replace(/\n{3,}/g, '\n\n')  // Max 2 newlines
-        .replace(/[ \t]+/g, ' ')      // Collapse spaces (but not newlines)
-        .replace(/ ?\n ?/g, '\n')     // Clean up spaces around newlines
+      // Get text and normalize whitespace
+      let text = (temp.textContent || '')
+        .replace(/\s+/g, ' ')
         .trim();
+      
+      // Fix concatenated words where BR tags were stripped entirely
+      // Add space between: digit+capital, lowercase+capital, period+capital (no space)
+      text = text
+        .replace(/(\d)([A-Z])/g, '$1 $2')      // "2024At" -> "2024 At"
+        .replace(/([a-z])([A-Z])/g, '$1 $2')   // "helloWorld" -> "hello World"  
+        .replace(/\.([A-Z])/g, '. $1');        // "end.The" -> "end. The"
+      
+      return text;
     }
     
     return null;

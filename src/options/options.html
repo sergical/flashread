@@ -6,7 +6,7 @@
   <title>FlashRead Settings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Literata:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
@@ -113,6 +113,24 @@
             </div>
             
             <div class="setting">
+              <label>Font Style</label>
+              <div class="font-options">
+                <button class="font-btn" data-font="serif">
+                  <span class="font-preview font-preview-serif">Aa</span>
+                  <span>Serif</span>
+                </button>
+                <button class="font-btn" data-font="sans">
+                  <span class="font-preview font-preview-sans">Aa</span>
+                  <span>Sans</span>
+                </button>
+                <button class="font-btn" data-font="mono">
+                  <span class="font-preview font-preview-mono">Aa</span>
+                  <span>Mono</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="setting">
               <label for="theme">Theme</label>
               <div class="theme-options">
                 <button class="theme-btn active" data-theme="dark">
@@ -212,6 +230,48 @@
           </div>
         </section>
         
+        <!-- History -->
+        <section class="card history-card">
+          <div class="card-header">
+            <div class="card-icon history-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h2>Reading History</h2>
+          </div>
+          
+          <div class="card-body">
+            <!-- Aggregate Stats -->
+            <div class="history-stats" id="history-stats">
+              <div class="stat-item">
+                <span class="stat-value" id="total-sessions">0</span>
+                <span class="stat-label">Sessions</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="total-words">0</span>
+                <span class="stat-label">Words Read</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="total-time">0m</span>
+                <span class="stat-label">Time</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="avg-wpm">0</span>
+                <span class="stat-label">Avg WPM</span>
+              </div>
+            </div>
+            
+            <!-- Session List -->
+            <div class="history-list" id="history-list">
+              <p class="history-empty">No reading sessions yet. Start reading to track your progress!</p>
+            </div>
+            
+            <!-- Clear History -->
+            <button id="clear-history" class="btn-clear-history">Clear History</button>
+          </div>
+        </section>
+        
         <!-- Reset -->
         <section class="card reset-card">
           <div class="card-body">
@@ -228,7 +288,7 @@
     </main>
     
     <footer class="footer">
-      <p>FlashRead v1.0</p>
+      <p>FlashRead v1.1</p>
     </footer>
   </div>
   
