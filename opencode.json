@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "read": {
+      "*": "allow",
+      "PRD-*.md": "allow",
+      "packages/premium/**": "allow",
+      "tmp/**": "allow"
+    }
+  }
+}

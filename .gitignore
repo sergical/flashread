@@ -3,6 +3,11 @@ node_modules/
 
 # Build output
 dist/
+.next/
+.turbo/
+
+# Package manager
+pnpm-lock.yaml
 
 # Zip files
 *.zip
@@ -24,8 +29,14 @@ npm-debug.log*
 # Environment
 .env
 .env.local
+.env*.local
 
+# PRD and Premium (private)
 PRD-*.md
 packages/premium/
 
+# Tailwind Plus kit (licensed)
 tmp/
+
+# TypeScript build info
+*.tsbuildinfo
