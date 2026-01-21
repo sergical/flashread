@@ -1,8 +1,9 @@
+import browser from 'webextension-polyfill';
 import { loadSettings, saveSettings } from '../lib/storage';
 
 /**
  * Popup Script
- * 
+ *
  * Handles popup UI interactions with a polished UX.
  */
 
@@ -32,13 +33,13 @@ async function init() {
 function setupEventListeners() {
   // Read page button
   readPageBtn.addEventListener('click', async () => {
-    await chrome.runtime.sendMessage({ type: 'READ_PAGE_FROM_POPUP' });
+    await browser.runtime.sendMessage({ type: 'READ_PAGE_FROM_POPUP' });
     window.close();
   });
-  
+
   // Demo button
   demoBtn.addEventListener('click', async () => {
-    await chrome.runtime.sendMessage({ type: 'OPEN_DEMO_FROM_POPUP' });
+    await browser.runtime.sendMessage({ type: 'OPEN_DEMO_FROM_POPUP' });
     window.close();
   });
   
@@ -62,7 +63,7 @@ function setupEventListeners() {
   readCustomBtn.addEventListener('click', async () => {
     const text = customTextArea.value.trim();
     if (text) {
-      await chrome.runtime.sendMessage({
+      await browser.runtime.sendMessage({
         type: 'START_READING_FROM_POPUP',
         payload: { text },
       });
@@ -92,7 +93,7 @@ function setupEventListeners() {
   // Open options
   openOptionsLink.addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.runtime.openOptionsPage();
+    browser.runtime.openOptionsPage();
   });
   
   // Handle paste

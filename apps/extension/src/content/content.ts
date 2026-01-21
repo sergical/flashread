@@ -1,49 +1,45 @@
+import browser from 'webextension-polyfill';
 import { Readability } from '@mozilla/readability';
 import type { Message, StartReadingPayload } from '@flashread/core';
 import { showOverlay, hideOverlay, isOverlayVisible } from './overlay';
 
 /**
  * Content Script
- * 
+ *
  * Handles text extraction and communication with the background script.
  */
 
 // Listen for messages from background script
-chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message: Message) => {
   switch (message.type) {
     case 'START_READING': {
       const payload = message.payload as StartReadingPayload | undefined;
       handleStartReading(payload?.text);
-      sendResponse({ success: true });
-      break;
+      return Promise.resolve({ success: true });
     }
-    
+
     case 'STOP_READING': {
       hideOverlay();
-      sendResponse({ success: true });
-      break;
+      return Promise.resolve({ success: true });
     }
-    
+
     case 'GET_SELECTION': {
       const selection = window.getSelection()?.toString().trim();
-      sendResponse({ text: selection || null });
-      break;
+      return Promise.resolve({ text: selection || null });
     }
-    
+
     case 'GET_ARTICLE': {
       const article = extractArticle();
-      sendResponse({ text: article });
-      break;
+      return Promise.resolve({ text: article });
     }
-    
+
     case 'OPEN_DEMO': {
       showOverlay(); // Shows demo text when no text provided
-      sendResponse({ success: true });
-      break;
+      return Promise.resolve({ success: true });
     }
   }
-  
-  return true; // Keep message channel open for async response
+
+  return undefined;
 });
 
 /**

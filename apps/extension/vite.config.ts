@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import webExtension from 'vite-plugin-web-extension';
 import path from 'path';
 
+// Target browser: 'chrome' or 'firefox'
+const targetBrowser = process.env.TARGET_BROWSER || 'chrome';
+
 export default defineConfig({
   plugins: [
     webExtension({
@@ -11,8 +14,8 @@ export default defineConfig({
         'src/popup/popup.html',
         'src/options/options.html',
       ],
-      // Disable auto-opening browser in dev mode (set to true to enable)
-      browser: process.env.OPEN_BROWSER === 'true' ? 'chrome' : undefined,
+      // Target browser for build output
+      browser: process.env.OPEN_BROWSER === 'true' ? targetBrowser : (targetBrowser as 'chrome' | 'firefox'),
       disableAutoLaunch: process.env.OPEN_BROWSER !== 'true',
     }),
   ],
@@ -22,7 +25,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: targetBrowser === 'firefox' ? 'dist-firefox' : 'dist',
     emptyOutDir: true,
     sourcemap: process.env.NODE_ENV === 'development',
   },
