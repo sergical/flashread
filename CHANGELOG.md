@@ -2,7 +2,7 @@
 
 All notable changes to FlashRead will be documented in this file.
 
-## [1.1.0] - 2025-01-25
+## [1.1.0] - 2026-01-25
 
 ### Fixed
 - Prevent double content script initialization when script is injected multiple times (fixes duplicate sessions bug)
