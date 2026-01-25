@@ -1014,7 +1014,11 @@ export class FlashReadOverlay {
       startWpm: stats.startWpm,
       endWpm: stats.endWpm,
     };
-    saveSession(session);
+    // Only save sessions with meaningful content (10+ words)
+    const MIN_WORDS_FOR_SESSION = 10;
+    if (stats.wordsRead >= MIN_WORDS_FOR_SESSION) {
+      saveSession(session);
+    }
     
     // Create and inject keyframes first
     const styleSheet = document.createElement('style');
