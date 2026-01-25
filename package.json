@@ -11,6 +11,8 @@
     "dev:extension": "turbo dev --filter=@flashread/extension",
     "dev:web": "turbo dev --filter=@flashread/web",
     "build:extension": "turbo build --filter=@flashread/extension",
+    "build:extension:firefox": "turbo build:firefox --filter=@flashread/extension",
+    "build:extension:all": "turbo build:all --filter=@flashread/extension",
     "build:web": "turbo build --filter=@flashread/web"
   },
   "devDependencies": {
