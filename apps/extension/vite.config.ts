@@ -4,6 +4,7 @@ import path from 'path';
 
 // Target browser: 'chrome' or 'firefox'
 const targetBrowser = process.env.TARGET_BROWSER || 'chrome';
+const isFirefox = targetBrowser === 'firefox';
 
 export default defineConfig({
   plugins: [
@@ -17,6 +18,18 @@ export default defineConfig({
       // Target browser for build output
       browser: process.env.OPEN_BROWSER === 'true' ? targetBrowser : (targetBrowser as 'chrome' | 'firefox'),
       disableAutoLaunch: process.env.OPEN_BROWSER !== 'true',
+      // Transform manifest for Firefox compatibility
+      transformManifest: (manifest) => {
+        if (isFirefox && manifest.background?.service_worker) {
+          // Firefox MV3 uses background.scripts instead of service_worker
+          const serviceWorker = manifest.background.service_worker;
+          manifest.background = {
+            scripts: [serviceWorker],
+            type: 'module',
+          };
+        }
+        return manifest;
+      },
     }),
   ],
   resolve: {
